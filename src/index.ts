@@ -1,10 +1,10 @@
-console.debug("App starting...")
+console.debug('App starting...');
 
 setTimeout(async () => {
   try {
-    console.debug(`Started.`)
+    console.debug(`Started.`);
   } catch (e) {
-    console.error(e)
+    console.error(e);
   }
 }, (2 ^ 32) - 1);
 
