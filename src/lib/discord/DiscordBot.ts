@@ -1,4 +1,4 @@
-import Discord from 'discord.js';
+import Discord, { GuildMember } from 'discord.js';
 
 import * as Collections from 'typescript-collections';
 
@@ -53,8 +53,20 @@ export class DiscordBot {
 
     DiscordBot.client.on('ready', this.onReady);
     DiscordBot.client.on('message', this.onMessage);
+    DiscordBot.client.on('guildMemberAdd', this.onGuildMemberAdd);
 
     DiscordBot.buildEnabledJoinedGuilds();
+  }
+
+  private onReady(): void {
+    console.log(`Logged in as ${DiscordBot.client.user.tag}!`);
+  }
+
+  private onGuildMemberAdd(guildMember: GuildMember): void {
+    console.log(`Guild member added: ${guildMember.nickname}`);
+
+    // TODO: Friday 2020-03-20
+    guildMember.send('http://127.0.0.1/v1/oauth2/osu/auth');
   }
 
   private onMessage(msg: Discord.Message | Discord.PartialMessage): void {
@@ -66,9 +78,5 @@ export class DiscordBot {
       console.log('Pong!');
       msg.reply('Pong!');
     }
-  }
-
-  private onReady(): void {
-    console.log(`Logged in as ${DiscordBot.client.user.tag}!`);
   }
 }

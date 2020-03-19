@@ -27,7 +27,9 @@
     "no-expression-statement": [false, { "ignore-prefix": ["console.", "process.exit", "setTimeout"] }],
     "no-if-statement": false,
     "no-console": false,
-    "no-bitwise": false
+    "no-bitwise": false,
+
+    "object-literal-shorthand": false
     /* end tslint-immutable rules */
   }
 }
