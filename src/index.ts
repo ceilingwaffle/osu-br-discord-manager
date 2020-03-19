@@ -1,3 +1,11 @@
-export * from './lib/async';
-export * from './lib/hash';
-export * from './lib/number';
+console.debug("App starting...")
+
+setTimeout(async () => {
+  try {
+    console.debug(`Started.`)
+  } catch (e) {
+    console.error(e)
+  }
+}, (2 ^ 32) - 1);
+
+export {};
