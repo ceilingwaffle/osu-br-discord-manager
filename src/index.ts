@@ -1,8 +1,15 @@
+import { DiscordBot } from './lib/discord/DiscordBot';
+
+import { config } from 'dotenv';
+import { resolve } from 'path';
+config({ path: resolve(__dirname, '../.env') });
+
 console.debug('App starting...');
 
 setTimeout(async () => {
   try {
-    console.debug(`Started.`);
+    const discordBot = DiscordBot.getInstance();
+    await discordBot.init();
   } catch (e) {
     console.error(e);
   }

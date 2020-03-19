@@ -16,19 +16,16 @@
     "readonly-keyword": true,
     "readonly-array": true,
     "no-let": true,
-    "no-object-mutation": true,
+    "no-object-mutation": false,
     "no-delete": true,
     "no-method-signature": true,
 
     // Functional style rules
-    "no-this": true,
-    "no-class": true,
+    "no-this": false,
+    "no-class": false,
     "no-mixed-interface": true,
-    "no-expression-statement": [
-      true,
-      { "ignore-prefix": ["console.", "process.exit", "setTimeout"] }
-    ],
-    "no-if-statement": true,
+    "no-expression-statement": [false, { "ignore-prefix": ["console.", "process.exit", "setTimeout"] }],
+    "no-if-statement": false,
     "no-console": false,
     "no-bitwise": false
     /* end tslint-immutable rules */
