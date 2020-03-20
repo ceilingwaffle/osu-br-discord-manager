@@ -3,6 +3,10 @@ import passport from 'passport';
 import OAuth2Strategy from 'passport-oauth2';
 import { OsuApi } from '../osu/OsuApi';
 
+import session from 'express-session';
+import { Encryption } from '../store/Encryption';
+import { DiscordBot } from '../discord/DiscordBot';
+
 export class HttpServer {
   public start(): void {
     const app = express();
@@ -16,26 +20,47 @@ export class HttpServer {
           callbackURL: process.env.OSU_OAUTH_CALLBACK_URL,
           clientID: process.env.OSU_OAUTH_CLIENT_ID,
           clientSecret: process.env.OSU_OAUTH_CLIENT_SECRET,
+          passReqToCallback: true,
           tokenURL: 'https://osu.ppy.sh/oauth/token'
         },
-        async (accessToken, refreshToken, profileEmpty, callback) => {
+        async (req, accessToken, refreshToken, profileEmpty, verifyCallback) => {
           try {
             const osuUser = await osuApi.getOsuUserFromToken(accessToken);
+            console.debug('osuUser', osuUser);
             if (!osuUser.id || !osuUser.rank || !osuUser.username) {
               throw new Error('OsuUser does not contain the expected properties.');
             }
-            console.log('osuUser', osuUser);
+            const encryptedDiscordUserId = req.session.euid;
+            const discordUserId = Encryption.decrypt(encryptedDiscordUserId);
+            console.debug('discordUserId', discordUserId);
+            await DiscordBot.handleOsuOAuthSuccess(osuUser, discordUserId);
           } catch (error) {
-            console.error('Failed osu user request using access token :(');
+            console.error('Failed osu user request using access token :(. Error:', error);
           }
-          callback(null, {});
+          verifyCallback(null, {});
         }
       )
     );
 
+    app.use(
+      session({
+        cookie: { secure: false },
+        resave: false,
+        saveUninitialized: true,
+        secret: 'keyboard cat'
+      })
+    );
+
     app.use(passport.initialize());
 
-    app.get('/v1/oauth2/osu/auth', passport.authenticate('oauth2', { state: '' }));
+    app.get(
+      '/v1/oauth2/osu/auth',
+      (req, resp, next) => {
+        req.session.euid = req.query.euid;
+        next();
+      },
+      passport.authenticate('oauth2', { session: true })
+    );
 
     app.get(
       '/v1/oauth2/osu/callback',

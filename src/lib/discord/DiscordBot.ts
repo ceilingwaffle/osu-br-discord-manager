@@ -1,8 +1,7 @@
 import Discord, { GuildMember } from 'discord.js';
-
 import * as Collections from 'typescript-collections';
 import { UrlBuilder } from '../http/UrlBuilder';
-import { Encryption } from '../store/Encryption';
+import { OsuUser } from '../osu/OsuApi';
 
 type GuildId = string;
 
@@ -20,6 +19,11 @@ export class DiscordBot {
     }
 
     return DiscordBot.instance;
+  }
+
+  public static async handleOsuOAuthSuccess(osuUser: OsuUser, discordUserId: string): Promise<void> {
+    console.debug('TODO - handle osu oauth success...');
+    throw new Error('Method not implemented.');
   }
 
   // tslint:disable-next-line: readonly-keyword
