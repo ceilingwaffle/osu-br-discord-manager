@@ -47,18 +47,18 @@ export class HttpServer {
       async (req, res) => {
         // console.log('/v1/oauth2/osu/callback req.query:', req.query);
         // console.log('/v1/oauth2/osu/callback req.user:', req.user);
-        return res.send(200);
+        return res.sendStatus(200);
       }
     );
 
     app.get('/v1/oauth2/osu/success', async (req, res) => {
       console.log('TODO: /v1/oauth2/osu/success');
-      return res.send(200);
+      return res.sendStatus(200);
     });
 
     app.get('/v1/oauth2/osu/failure', async (req, res) => {
       console.log('TODO: /v1/oauth2/osu/failure');
-      return res.send(200);
+      return res.sendStatus(200);
     });
 
     app.listen(port, () => {
