@@ -1,6 +1,8 @@
 import Discord, { GuildMember } from 'discord.js';
 
 import * as Collections from 'typescript-collections';
+import { UrlBuilder } from '../http/UrlBuilder';
+import { Encryption } from '../store/Encryption';
 
 type GuildId = string;
 
@@ -25,7 +27,9 @@ export class DiscordBot {
 
   private static readonly client = new Discord.Client({});
 
-  private static readonly config: { readonly enabledGuilds: ReadonlyArray<EnabledGuild> } = {
+  private static readonly config: {
+    readonly enabledGuilds: ReadonlyArray<EnabledGuild>;
+  } = {
     enabledGuilds: [{ id: '583651277737689088', desc: 'dev' }]
   };
 
@@ -63,14 +67,20 @@ export class DiscordBot {
   }
 
   private onGuildMemberAdd(guildMember: GuildMember): void {
-    console.log(`Guild member added: ${guildMember.nickname}`);
+    console.log(`Guild member added: ${guildMember.displayName}`);
 
-    // TODO: Friday 2020-03-20
-    guildMember.send('http://127.0.0.1/v1/oauth2/osu/auth');
+    const oauthUrl = UrlBuilder.buildInitialOauthUrlForDiscordUser(guildMember.id);
+    const message = `Welcome to the battle royale! Please visit ${oauthUrl} to verify your osu! account.`;
+    guildMember.send(message);
+
+    // console.debug(message);
+    // console.debug(`Plaintext: ${guildMember.id}`);
+    // console.debug(`Encrypted: ${Encryption.encrypt(guildMember.id)}`);
+    // console.debug(`Decrypted: ${Encryption.decrypt(Encryption.encrypt(guildMember.id))}`);
   }
 
   private onMessage(msg: Discord.Message | Discord.PartialMessage): void {
-    if (!DiscordBot.guildIsEnabled(msg.guild.id)) {
+    if (msg?.type !== 'DEFAULT' || (msg?.guild?.id?.length > 0 && !DiscordBot.guildIsEnabled(msg?.guild?.id))) {
       return;
     }
 

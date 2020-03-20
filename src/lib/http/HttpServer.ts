@@ -35,7 +35,7 @@ export class HttpServer {
 
     app.use(passport.initialize());
 
-    app.get('/v1/oauth2/osu/auth', passport.authenticate('oauth2'));
+    app.get('/v1/oauth2/osu/auth', passport.authenticate('oauth2', { state: '' }));
 
     app.get(
       '/v1/oauth2/osu/callback',
