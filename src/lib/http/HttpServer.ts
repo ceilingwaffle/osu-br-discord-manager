@@ -1,11 +1,10 @@
 import express from 'express';
+import session from 'express-session';
 import passport from 'passport';
 import OAuth2Strategy from 'passport-oauth2';
-import { OsuApi } from '../osu/OsuApi';
-
-import session from 'express-session';
-import { Encryption } from '../store/Encryption';
 import { DiscordBot } from '../discord/DiscordBot';
+import { OsuApi } from '../osu/OsuApi';
+import { Encryption } from '../store/Encryption';
 
 export class HttpServer {
   public start(): void {
