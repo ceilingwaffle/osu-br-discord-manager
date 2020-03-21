@@ -2,7 +2,7 @@ import express from 'express';
 import session from 'express-session';
 import passport from 'passport';
 import OAuth2Strategy from 'passport-oauth2';
-import { DiscordBot } from '../discord/DiscordBot';
+import { DiscordService } from '../discord/DiscordService';
 import { OsuApi } from '../osu/OsuApi';
 import { Encryption } from '../store/Encryption';
 
@@ -30,11 +30,14 @@ export class HttpServer {
               throw new Error('OsuUser does not contain the expected properties.');
             }
             const encryptedDiscordUserId = req.session.euid;
+            if (!encryptedDiscordUserId) {
+              throw new Error('Encrypted Discord User ID (EUID) does not exist in session (oAuth).');
+            }
             const discordUserId = Encryption.decrypt(encryptedDiscordUserId);
             console.debug('discordUserId', discordUserId);
-            await DiscordBot.handleOsuOAuthSuccess(osuUser, discordUserId);
+            await DiscordService.handleOsuOAuthSuccess(osuUser, discordUserId);
           } catch (error) {
-            console.error('Failed osu user request using access token :(. Error:', error);
+            console.error('Failed osu! user authentication process. Error:', error);
           }
           verifyCallback(null, {});
         }
