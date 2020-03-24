@@ -1,7 +1,8 @@
-import express from 'express';
+import express, { Request } from 'express';
 import session from 'express-session';
 import passport from 'passport';
 import OAuth2Strategy from 'passport-oauth2';
+import path from 'path';
 import { DiscordService } from '../discord/DiscordService';
 import { OsuApi } from '../osu/OsuApi';
 import { Encryption } from '../store/Encryption';
@@ -11,6 +12,10 @@ export class HttpServer {
     const app = express();
     const port = 80;
     const osuApi = new OsuApi();
+    const htmlPath = path.join(__dirname, 'public');
+
+    // app.use(express.static(htmlPath, { extensions: ['html'] }));
+    app.use(express.urlencoded({ extended: true }));
 
     passport.use(
       new OAuth2Strategy(
@@ -29,17 +34,13 @@ export class HttpServer {
             if (!osuUser.id || !osuUser.rank || !osuUser.username) {
               throw new Error('OsuUser does not contain the expected properties.');
             }
-            const encryptedDiscordUserId = req.session.euid;
-            if (!encryptedDiscordUserId) {
-              throw new Error('Encrypted Discord User ID (EUID) does not exist in session (oAuth).');
-            }
-            const discordUserId = Encryption.decrypt(encryptedDiscordUserId);
-            console.debug('discordUserId', discordUserId);
+            const discordUserId = this.getDiscordUserIdFromSession(req);
             await DiscordService.handleOsuOAuthSuccess(osuUser, discordUserId);
+            verifyCallback(null, {});
           } catch (error) {
             console.error('Failed osu! user authentication process. Error:', error);
+            verifyCallback(error, {});
           }
-          verifyCallback(null, {});
         }
       )
     );
@@ -49,7 +50,7 @@ export class HttpServer {
         cookie: { secure: false },
         resave: false,
         saveUninitialized: true,
-        secret: 'keyboard cat'
+        secret: process.env.SESSION_SECRET
       })
     );
 
@@ -72,24 +73,61 @@ export class HttpServer {
         successRedirect: '/v1/oauth2/osu/success'
       }),
       async (req, res) => {
-        // console.log('/v1/oauth2/osu/callback req.query:', req.query);
-        // console.log('/v1/oauth2/osu/callback req.user:', req.user);
+        // console.debug('/v1/oauth2/osu/callback req.query:', req.query);
+        // console.debug('/v1/oauth2/osu/callback req.user:', req.user);
+        console.debug('GET /v1/oauth2/osu/callback, session:');
         return res.sendStatus(200);
       }
     );
 
     app.get('/v1/oauth2/osu/success', async (req, res) => {
-      console.log('TODO: /v1/oauth2/osu/success');
-      return res.sendStatus(200);
+      console.debug('GET /v1/oauth2/osu/success');
+      res.sendFile(htmlPath + '/roles.html', { euid: req.session.euid });
+    });
+
+    app.post('/v1/oauth2/osu/success', async (req, res) => {
+      try {
+        console.debug('POST /v1/oauth2/osu/success');
+
+        // gives us an array like ['solos', 'trios']
+        const roles: readonly string[] = Object.entries({
+          duos: req.body.duos === 'on',
+          solos: req.body.solos === 'on',
+          squads: req.body.squads === 'on',
+          trios: req.body.trios === 'on'
+        })
+          .filter(e => e[1] === true)
+          .map(e => e[0]);
+
+        const discordUserId = this.getDiscordUserIdFromSession(req);
+        if (!discordUserId) {
+          throw new Error(`Discord User ID '${discordUserId}' is invalid.`);
+        }
+        await DiscordService.assignPlayerRolesToUser(discordUserId, roles);
+        return res.send('Your Discord roles have been applied! Check Discord for more info.');
+      } catch (error) {
+        return res.send('Oops! Something went wrong. Unable to assign you your discord roles. Check with the Discord server admin.');
+      }
     });
 
     app.get('/v1/oauth2/osu/failure', async (req, res) => {
-      console.log('TODO: /v1/oauth2/osu/failure');
-      return res.sendStatus(200);
+      console.debug('/v1/oauth2/osu/failure');
+      return res.send('Oops! Failed to authenticate your osu! account. Please try again.');
     });
 
     app.listen(port, () => {
-      console.log(`HTTP server started at http://localhost:${port}`);
+      console.debug(`HTTP server started at http://localhost:${port}`);
     });
+  }
+
+  private getDiscordUserIdFromSession(req: any): string {
+    const encryptedDiscordUserId = req.session.euid;
+    if (!encryptedDiscordUserId) {
+      const error = 'Encrypted Discord User ID (EUID) does not exist in session (oAuth).';
+      console.error(error);
+      throw new Error(error);
+    }
+    const discordUserId = Encryption.decrypt(encryptedDiscordUserId);
+    return discordUserId;
   }
 }

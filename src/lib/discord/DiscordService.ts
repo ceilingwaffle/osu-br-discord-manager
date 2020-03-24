@@ -19,10 +19,35 @@ export class DiscordService {
     await DiscordService.setupNewUser(discordUserId, osuUser);
   }
 
+  public static async assignPlayerRolesToUser(discordUserId: string, roles: readonly string[]): Promise<void> {
+    // assign the user the BR role (e.g. solos, duos, trios, squads)
+    console.debug(`Assigning player roles '${roles.join(', ')}' to Discord user '${discordUserId}'`);
+    for (const roleString of roles) {
+      // tslint:disable-next-line: no-let
+      let role: BattleRoyaleDiscordRole;
+      if (roleString === 'duos') {
+        role = BattleRoyaleDiscordRole.BR_DUOS;
+      } else if (roleString === 'solos') {
+        role = BattleRoyaleDiscordRole.BR_SOLOS;
+      } else if (roleString === 'squads') {
+        role = BattleRoyaleDiscordRole.BR_SQUADS;
+      } else if (roleString === 'trios') {
+        role = BattleRoyaleDiscordRole.BR_TRIOS;
+      } else {
+        const errMsg = `Role type '${roleString}' is unhandled`;
+        console.error(errMsg);
+        throw new Error(errMsg);
+      }
+      const reason = 'The user requested some battle royale player roles.';
+      // TODO - optimize N+1
+      await DiscordBot.getInstance().assignRole(discordUserId, role, reason);
+    }
+  }
+
   private static async denyUserAccess(osuUser: OsuUser, discordUserId: string): Promise<void> {
     const message = `Sorry, your rank is ${osuUser.rank} but you must be at least rank ${DiscordService.config.minRank} to participate in the battle royale! ✋`;
     await DiscordBot.getInstance().sendPrivateMessage(discordUserId, message);
-    // Could do other stuff here like kick the user. Depends how we want to handle it...
+    // TODO: kick the user
   }
 
   private static async setupNewUser(discordUserId: string, osuUser: OsuUser): Promise<void> {

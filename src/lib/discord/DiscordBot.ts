@@ -24,7 +24,7 @@ export class DiscordBot {
   // tslint:disable-next-line: readonly-keyword
   private static instance: DiscordBot;
 
-  private static readonly client = new Discord.Client({});
+  private static readonly client = new Discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
 
   private static readonly config: {
     readonly enabledGuilds: ReadonlyArray<EnabledGuild>;
@@ -78,12 +78,13 @@ export class DiscordBot {
     DiscordBot.client.on('ready', this.onReady);
     DiscordBot.client.on('message', this.onMessage);
     DiscordBot.client.on('guildMemberAdd', this.onGuildMemberAdd);
+    DiscordBot.client.on('messageReactionAdd', this.onMessageReactionAdd);
 
     DiscordBot.buildEnabledJoinedGuilds();
   }
 
   public async sendPrivateMessage(discordUserId: string, message: string): Promise<void> {
-    console.debug(`Sending DM to user: '${message}'`);
+    console.debug(`Sending user a DM: '${message}'`);
     const discordUser = DiscordBot.getObservedDiscordUser(discordUserId);
     if (!discordUser) {
       return new Promise((resolve, reject) => reject('Discord user not found.'));
@@ -92,7 +93,7 @@ export class DiscordBot {
     try {
       await discordUser.send(message);
     } catch (error) {
-      console.error('Failed to send message to Discord user', error);
+      console.error('Failed to send user a DM.', error);
       throw error;
     }
   }
@@ -124,7 +125,6 @@ export class DiscordBot {
     const discordRole = await DiscordBot.createRoleIfNotExists(discordRoleData, discordGuild);
 
     // assign role to user
-    console.debug('Assigning role to user...');
     await discordUser.roles.add(discordRole, reason);
   }
 
@@ -154,5 +154,19 @@ export class DiscordBot {
       console.log('Pong!');
       msg.reply('Pong!');
     }
+  }
+
+  private async onMessageReactionAdd(reaction: Discord.MessageReaction, user: Discord.User | Discord.PartialUser): Promise<void> {
+    if (reaction.partial) {
+      try {
+        await reaction.fetch();
+      } catch (error) {
+        console.debug('Something went wrong when fetching the message: ', error);
+        return;
+      }
+    }
+
+    console.debug(`${reaction.message.author}'s message "${reaction.message.content}" gained a reaction!`);
+    console.debug(`${reaction.count} user(s) have given the same reaction to this message!`);
   }
 }
