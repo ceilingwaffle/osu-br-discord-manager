@@ -4,11 +4,6 @@ import { Store } from '../store/Store';
 import { BattleRoyaleDiscordRole } from './BattleRoyaleDiscordRole';
 import { DiscordService } from './DiscordService';
 
-// interface EnabledGuild {
-//   readonly id: string;
-//   readonly desc: string;
-// }
-
 export class DiscordBot {
   public static getInstance(): DiscordBot {
     if (!DiscordBot.instance) {
@@ -24,7 +19,7 @@ export class DiscordBot {
   private static readonly client = new Discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
 
   private static readonly enabledJoinedGuildIds: Collections.Set<string> = new Collections.Set<string>();
-  private static readonly observedJoinedGuildMembers: Collections.Dictionary<string, GuildMember> = new Collections.Dictionary<string, GuildMember>();
+  private static readonly observedGuildMembers: Collections.Dictionary<string, GuildMember> = new Collections.Dictionary<string, GuildMember>();
 
   private static guildIsEnabled(guildId: string): boolean {
     return DiscordBot.enabledJoinedGuildIds.contains(guildId);
@@ -39,8 +34,12 @@ export class DiscordBot {
     }
   }
 
-  private static getObservedDiscordUser(discordUserId: string): GuildMember {
-    return DiscordBot.observedJoinedGuildMembers.getValue(discordUserId);
+  private static getObservedGuildMember(discordUserId: string): GuildMember {
+    return DiscordBot.observedGuildMembers.getValue(discordUserId);
+  }
+
+  private static addObservedGuildMember(discordUserId: string, guildMember: GuildMember): GuildMember | undefined {
+    return DiscordBot.observedGuildMembers.setValue(discordUserId, guildMember);
   }
 
   private static async createRoleIfNotExists(discordRoleData: Discord.RoleData, guild: Discord.Guild): Promise<Discord.Role> {
@@ -64,14 +63,15 @@ export class DiscordBot {
     DiscordBot.client.on('ready', this.onReady);
     DiscordBot.client.on('message', this.onMessage);
     DiscordBot.client.on('guildMemberAdd', this.onGuildMemberAdd);
-    DiscordBot.client.on('messageReactionAdd', this.onMessageReactionAdd);
+    // DiscordBot.client.on('messageReactionAdd', this.onMessageReactionAdd);
+    // DiscordBot.client.on('messageReactionRemove', this.messageReactionRemove);
 
     DiscordBot.buildEnabledJoinedGuilds();
   }
 
   public async sendPrivateMessage(discordUserId: string, message: string): Promise<void> {
     console.debug(`Sending user a DM: '${message}'`);
-    const discordUser = DiscordBot.getObservedDiscordUser(discordUserId);
+    const discordUser = DiscordBot.getObservedGuildMember(discordUserId);
     if (!discordUser) {
       return new Promise((resolve, reject) => reject('Discord user not found.'));
     }
@@ -86,7 +86,7 @@ export class DiscordBot {
 
   public async setNickname(discordUserId: string, nickname: string, reason?: string): Promise<void> {
     console.debug('Setting nickname of user...');
-    const discordUser = DiscordBot.getObservedDiscordUser(discordUserId);
+    const discordUser = DiscordBot.getObservedGuildMember(discordUserId);
     if (!discordUser) {
       return new Promise((resolve, reject) => reject('Discord user not found.'));
     }
@@ -94,24 +94,45 @@ export class DiscordBot {
     await discordUser.setNickname(nickname, reason);
   }
 
-  public async assignRole(discordUserId: string, newRole: BattleRoyaleDiscordRole, reason?: string): Promise<void> {
-    console.debug(`Assigning role '${newRole.value.name}' to user...`);
-    const discordUser = DiscordBot.getObservedDiscordUser(discordUserId);
-    if (!discordUser) {
+  public async assignRole(discordUserId: string, role: BattleRoyaleDiscordRole, reason?: string): Promise<void> {
+    console.debug(`Assigning role '${role.value.name}' to user '${discordUserId}'...`);
+    const guildMember = DiscordBot.getObservedGuildMember(discordUserId);
+    if (!guildMember) {
       return new Promise((resolve, reject) => reject('Discord user not found.'));
     }
 
     // create the role
-    const discordGuild: Discord.Guild = discordUser.guild;
+    const discordGuild: Discord.Guild = guildMember.guild;
     const discordRoleData: Discord.RoleData = {
-      color: newRole.value.color,
-      name: newRole.value.name,
-      permissions: newRole.value.permissions
+      color: role.value.color,
+      name: role.value.name,
+      permissions: role.value.permissions
     };
     const discordRole = await DiscordBot.createRoleIfNotExists(discordRoleData, discordGuild);
 
     // assign role to user
-    await discordUser.roles.add(discordRole, reason);
+    await guildMember.roles.add(discordRole, reason);
+  }
+
+  public async removeRole(discordUserId: string, role: BattleRoyaleDiscordRole, reason?: string): Promise<void> {
+    console.debug(`Removing role '${role.value.name}' from user '${discordUserId}'...`);
+    const discordUser = DiscordBot.getObservedGuildMember(discordUserId);
+    if (!discordUser) {
+      return new Promise((resolve, reject) => reject('Discord user not found.'));
+    }
+
+    // remove from from user
+    try {
+      const foundRole = discordUser.roles.cache.find(r => r.name === role.value.name);
+      if (!foundRole) {
+        console.warn(`Unable to remove role '${role.value.name}' because it was not found in the cache.`);
+        return;
+      }
+      await discordUser.roles.remove(foundRole, reason);
+    } catch (error) {
+      console.error('Error removing role:', error);
+      throw error;
+    }
   }
 
   private onReady(): void {
@@ -121,7 +142,7 @@ export class DiscordBot {
   private async onGuildMemberAdd(guildMember: GuildMember): Promise<void> {
     console.log(`Guild member added: ${guildMember.displayName}`);
     await DiscordService.sendOsuOAuthVerificationLinkToDiscordUser(guildMember);
-    DiscordBot.observedJoinedGuildMembers.setValue(guildMember.id, guildMember);
+    DiscordBot.addObservedGuildMember(guildMember.id, guildMember);
     // console.debug(message);
     // console.debug(`Plaintext: ${guildMember.id}`);
     // console.debug(`Encrypted: ${Encryption.encrypt(guildMember.id)}`);
@@ -129,8 +150,14 @@ export class DiscordBot {
   }
 
   private async onMessage(msg: Discord.Message | Discord.PartialMessage): Promise<void> {
-    if (msg?.type !== 'DEFAULT' || (msg?.guild?.id?.length > 0 && !DiscordBot.guildIsEnabled(msg?.guild?.id))) {
+    if (!msg?.guild || (msg?.guild?.id?.length > 0 && !DiscordBot.guildIsEnabled(msg?.guild?.id))) {
       return;
+    }
+
+    // Returns the GuildMember form of a User object, if the user is present in the guild.
+    const guildMember = msg.guild.member(msg.author);
+    if (guildMember) {
+      DiscordBot.addObservedGuildMember(msg.author.id, guildMember);
     }
 
     if (msg.content.startsWith('!verify')) {
@@ -167,5 +194,18 @@ export class DiscordBot {
 
     console.debug(`${reaction.message.author}'s message "${reaction.message.content}" gained a reaction!`);
     console.debug(`${reaction.count} user(s) have given the same reaction to this message!`);
+  }
+
+  private async messageReactionRemove(reaction: Discord.MessageReaction, user: Discord.User | Discord.PartialUser): Promise<void> {
+    if (reaction.partial) {
+      try {
+        await reaction.fetch();
+      } catch (error) {
+        console.debug('Something went wrong when fetching the message: ', error);
+        return;
+      }
+    }
+
+    console.debug(`${reaction.message.author}'s message "${reaction.message.content}" had a reaction removed!`);
   }
 }

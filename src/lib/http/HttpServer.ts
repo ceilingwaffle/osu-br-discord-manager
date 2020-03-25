@@ -97,10 +97,10 @@ export class HttpServer {
 
         // gives us an array like ['solos', 'trios']
         const roles: readonly string[] = Object.entries({
-          duos: req.body.duos === 'on',
-          solos: req.body.solos === 'on',
-          squads: req.body.squads === 'on',
-          trios: req.body.trios === 'on'
+          Duos: req.body.duos === 'on',
+          Solos: req.body.solos === 'on',
+          Squads: req.body.squads === 'on',
+          Trios: req.body.trios === 'on'
         })
           .filter(e => e[1] === true)
           .map(e => e[0]);

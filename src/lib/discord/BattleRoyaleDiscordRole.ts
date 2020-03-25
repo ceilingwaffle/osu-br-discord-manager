@@ -6,8 +6,11 @@ export interface DiscordRoleObject {
   readonly permissions?: Discord.PermissionResolvable;
 }
 
-export type BattleRoyaleRoleName = 'Solos' | 'Duos' | 'Trios' | 'Squads';
 export type VerifiedRoleName = 'Verified ✅';
+
+export const BR_ROLE_NAMES = ['Solos', 'Duos', 'Trios', 'Squads'] as const;
+export type BattleRoyaleRoleNameTuple = typeof BR_ROLE_NAMES;
+export type BattleRoyaleRoleName = BattleRoyaleRoleNameTuple[number];
 
 export class BattleRoyaleDiscordRole {
   public static readonly VERIFIED = new BattleRoyaleDiscordRole('VERIFIED', {

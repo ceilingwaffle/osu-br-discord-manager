@@ -1,8 +1,9 @@
 import Discord from 'discord.js';
+import { arrayDifference, arrayIntersection } from '../helpers';
 import { UrlBuilder } from '../http/UrlBuilder';
 import { OsuUser } from '../osu/OsuApi';
 import { Store } from '../store/Store';
-import { BattleRoyaleDiscordRole } from './BattleRoyaleDiscordRole';
+import { BattleRoyaleDiscordRole, BattleRoyaleRoleName, BR_ROLE_NAMES } from './BattleRoyaleDiscordRole';
 import { DiscordBot } from './DiscordBot';
 
 export class DiscordService {
@@ -19,28 +20,22 @@ export class DiscordService {
     await DiscordService.setupNewUser(discordUserId, osuUser);
   }
 
-  public static async assignPlayerRolesToUser(discordUserId: string, roles: readonly string[]): Promise<void> {
-    // assign the user the BR role (e.g. solos, duos, trios, squads)
-    console.debug(`Assigning player roles '${roles.join(', ')}' to Discord user '${discordUserId}'`);
-    for (const roleString of roles) {
-      // tslint:disable-next-line: no-let
-      let role: BattleRoyaleDiscordRole;
-      if (roleString === 'duos') {
-        role = BattleRoyaleDiscordRole.BR_DUOS;
-      } else if (roleString === 'solos') {
-        role = BattleRoyaleDiscordRole.BR_SOLOS;
-      } else if (roleString === 'squads') {
-        role = BattleRoyaleDiscordRole.BR_SQUADS;
-      } else if (roleString === 'trios') {
-        role = BattleRoyaleDiscordRole.BR_TRIOS;
-      } else {
-        const errMsg = `Role type '${roleString}' is unhandled`;
-        console.error(errMsg);
-        throw new Error(errMsg);
-      }
-      const reason = 'The user requested some battle royale player roles.';
+  public static async assignPlayerRolesToUser(discordUserId: string, possiblyInvalidSelectedRoles: readonly string[]): Promise<void> {
+    const allRoles: readonly BattleRoyaleRoleName[] = BR_ROLE_NAMES;
+    const selectedRoles: readonly BattleRoyaleRoleName[] = arrayIntersection(allRoles, possiblyInvalidSelectedRoles);
+    const unselectedRoles: readonly string[] = arrayDifference(allRoles, selectedRoles);
+
+    // assign/remove the user some BR roles (e.g. solos, duos, trios, squads)
+    console.debug(`Removing player roles '${unselectedRoles.join(', ')}' from Discord user '${discordUserId}'`);
+    console.debug(`Assigning player roles '${selectedRoles.join(', ')}' to Discord user '${discordUserId}'`);
+    for (const roleString of allRoles) {
+      const role = this.buildDiscordRoleForRoleName(roleString);
       // TODO - optimize N+1
-      await DiscordBot.getInstance().assignRole(discordUserId, role, reason);
+      if (selectedRoles.includes(roleString)) {
+        await DiscordBot.getInstance().assignRole(discordUserId, role, 'The user selected some battle royale player roles.');
+      } else {
+        await DiscordBot.getInstance().removeRole(discordUserId, role, 'The user did not select some battle royale player roles.');
+      }
     }
   }
 
@@ -48,6 +43,24 @@ export class DiscordService {
     const oauthUrl = UrlBuilder.buildInitialOauthUrlForDiscordUser(discordUser.id);
     const message = `Welcome to the battle royale! Please visit ${oauthUrl} to verify your osu! account.`;
     await discordUser.send(message);
+  }
+
+  private static buildDiscordRoleForRoleName(roleName: BattleRoyaleRoleName): BattleRoyaleDiscordRole {
+    // tslint:disable-next-line: no-let
+    let role: BattleRoyaleDiscordRole;
+    if (roleName === 'Duos') {
+      role = BattleRoyaleDiscordRole.BR_DUOS;
+    } else if (roleName === 'Solos') {
+      role = BattleRoyaleDiscordRole.BR_SOLOS;
+    } else if (roleName === 'Squads') {
+      role = BattleRoyaleDiscordRole.BR_SQUADS;
+    } else if (roleName === 'Trios') {
+      role = BattleRoyaleDiscordRole.BR_TRIOS;
+    } else {
+      const exhaustiveCheck: never = roleName;
+      return exhaustiveCheck;
+    }
+    return role;
   }
 
   private static async denyUserAccess(osuUser: OsuUser, discordUserId: string): Promise<void> {
