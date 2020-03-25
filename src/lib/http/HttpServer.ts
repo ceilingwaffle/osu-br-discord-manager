@@ -1,5 +1,7 @@
-import express, { Request } from 'express';
+import express from 'express';
 import session from 'express-session';
+import fs from 'fs';
+import https from 'https';
 import passport from 'passport';
 import OAuth2Strategy from 'passport-oauth2';
 import path from 'path';
@@ -10,11 +12,14 @@ import { Encryption } from '../store/Encryption';
 export class HttpServer {
   public start(): void {
     const app = express();
-    const port = 80;
     const osuApi = new OsuApi();
-    const htmlPath = path.join(__dirname, 'public');
+    const publicPath = path.join(__dirname, 'public');
+    const htmlPath = path.join(__dirname, 'html');
+    const certPath = path.join(__dirname, 'cert');
+    const privateKey = fs.readFileSync( path.join(certPath, 'server.key') );
+    const certificate = fs.readFileSync( path.join(certPath, 'server.cert') );
 
-    // app.use(express.static(htmlPath, { extensions: ['html'] }));
+    app.use(express.static(publicPath, { extensions: ['html'], dotfiles: 'allow' }));
     app.use(express.urlencoded({ extended: true }));
 
     passport.use(
@@ -115,8 +120,11 @@ export class HttpServer {
       return res.send('Oops! Failed to authenticate your osu! account. Please try again.');
     });
 
-    app.listen(port, () => {
-      console.debug(`HTTP server started at http://localhost:${port}`);
+    https.createServer({
+      cert: certificate,
+      key: privateKey
+    }, app).listen(443, () => {
+      console.debug(`HTTPS server started at https://localhost:443`);
     });
   }
 

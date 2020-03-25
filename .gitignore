@@ -10,3 +10,6 @@ coverage
 
 yarn.lock
 .env
+
+src/lib/http/cert
+notes
