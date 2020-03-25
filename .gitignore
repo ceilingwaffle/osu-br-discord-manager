@@ -13,3 +13,4 @@ yarn.lock
 
 src/lib/http/cert
 notes
+/data.json

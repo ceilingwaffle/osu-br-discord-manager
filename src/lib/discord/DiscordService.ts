@@ -1,15 +1,15 @@
+import Discord from 'discord.js';
+import { UrlBuilder } from '../http/UrlBuilder';
 import { OsuUser } from '../osu/OsuApi';
+import { Store } from '../store/Store';
 import { BattleRoyaleDiscordRole } from './BattleRoyaleDiscordRole';
 import { DiscordBot } from './DiscordBot';
 
 export class DiscordService {
-  public static readonly config = {
-    minRank: 9999
-  };
-
   public static async handleOsuOAuthSuccess(osuUser: OsuUser, discordUserId: string): Promise<void> {
     console.debug(`Checking rank '${osuUser.rank}'...`);
-    if (osuUser.rank > DiscordService.config.minRank) {
+    const minRank: number = await Store.get('config.minRank');
+    if (osuUser.rank > minRank) {
       console.debug('Denying user server access due to rank.');
       await DiscordService.denyUserAccess(osuUser, discordUserId);
       return;
@@ -44,8 +44,15 @@ export class DiscordService {
     }
   }
 
+  public static async sendOsuOAuthVerificationLinkToDiscordUser(discordUser: Discord.User | Discord.GuildMember): Promise<void> {
+    const oauthUrl = UrlBuilder.buildInitialOauthUrlForDiscordUser(discordUser.id);
+    const message = `Welcome to the battle royale! Please visit ${oauthUrl} to verify your osu! account.`;
+    await discordUser.send(message);
+  }
+
   private static async denyUserAccess(osuUser: OsuUser, discordUserId: string): Promise<void> {
-    const message = `Sorry, your rank is ${osuUser.rank} but you must be at least rank ${DiscordService.config.minRank} to participate in the battle royale! ✋`;
+    const minRank: number = await Store.get('config.minRank');
+    const message = `Sorry, your rank is ${osuUser.rank} but you must be at least rank ${minRank} to participate in the battle royale! ✋`;
     await DiscordBot.getInstance().sendPrivateMessage(discordUserId, message);
     // TODO: kick the user
   }

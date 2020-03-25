@@ -1,16 +1,13 @@
 import Discord, { GuildMember } from 'discord.js';
 import * as Collections from 'typescript-collections';
-import { UrlBuilder } from '../http/UrlBuilder';
+import { Store } from '../store/Store';
 import { BattleRoyaleDiscordRole } from './BattleRoyaleDiscordRole';
+import { DiscordService } from './DiscordService';
 
-type GuildId = string;
-
-interface EnabledGuild {
-  readonly id: GuildId;
-  readonly desc: string;
-}
-
-type EnabledGuildDictionary = Collections.Dictionary<GuildId, EnabledGuild>;
+// interface EnabledGuild {
+//   readonly id: string;
+//   readonly desc: string;
+// }
 
 export class DiscordBot {
   public static getInstance(): DiscordBot {
@@ -26,30 +23,19 @@ export class DiscordBot {
 
   private static readonly client = new Discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
 
-  private static readonly config: {
-    readonly enabledGuilds: ReadonlyArray<EnabledGuild>;
-  } = {
-    enabledGuilds: [{ id: '583651277737689088', desc: 'dev' }]
-  };
-
-  private static readonly enabledJoinedGuilds: EnabledGuildDictionary = new Collections.Dictionary<string, EnabledGuild>();
-
-  private static readonly observedJoinedGuildMembers: Collections.Dictionary<string, GuildMember> = new Collections.Dictionary<
-    string,
-    GuildMember
-  >();
+  private static readonly enabledJoinedGuildIds: Collections.Set<string> = new Collections.Set<string>();
+  private static readonly observedJoinedGuildMembers: Collections.Dictionary<string, GuildMember> = new Collections.Dictionary<string, GuildMember>();
 
   private static guildIsEnabled(guildId: string): boolean {
-    return DiscordBot.enabledJoinedGuilds.containsKey(guildId);
+    return DiscordBot.enabledJoinedGuildIds.contains(guildId);
   }
 
   private static buildEnabledJoinedGuilds(): void {
     const joinedGuilds = DiscordBot.client.guilds.cache;
-    const enabledJoinedGuilds = DiscordBot.config.enabledGuilds.filter(enabledGuild =>
-      joinedGuilds.map(jg => jg.id).includes(enabledGuild.id)
-    );
-    for (const enabledJoinedGuild of enabledJoinedGuilds) {
-      DiscordBot.enabledJoinedGuilds.setValue(enabledJoinedGuild.id, enabledJoinedGuild);
+    const enabledGuildIds: readonly string[] = Store.get('config.discord.enabledGuilds');
+    const enabledJoinedGuildIds = enabledGuildIds.filter(enabledGuildId => joinedGuilds.map(jg => jg.id).includes(enabledGuildId));
+    for (const enabledJoinedGuildId of enabledJoinedGuildIds) {
+      DiscordBot.enabledJoinedGuildIds.add(enabledJoinedGuildId);
     }
   }
 
@@ -132,12 +118,9 @@ export class DiscordBot {
     console.log(`Logged in as ${DiscordBot.client.user.tag}!`);
   }
 
-  private onGuildMemberAdd(guildMember: GuildMember): void {
+  private async onGuildMemberAdd(guildMember: GuildMember): Promise<void> {
     console.log(`Guild member added: ${guildMember.displayName}`);
-    const oauthUrl = UrlBuilder.buildInitialOauthUrlForDiscordUser(guildMember.id);
-    const message = `Welcome to the battle royale! Please visit ${oauthUrl} to verify your osu! account.`;
-
-    guildMember.send(message);
+    await DiscordService.sendOsuOAuthVerificationLinkToDiscordUser(guildMember);
     DiscordBot.observedJoinedGuildMembers.setValue(guildMember.id, guildMember);
     // console.debug(message);
     // console.debug(`Plaintext: ${guildMember.id}`);
@@ -145,15 +128,31 @@ export class DiscordBot {
     // console.debug(`Decrypted: ${Encryption.decrypt(Encryption.encrypt(guildMember.id))}`);
   }
 
-  private onMessage(msg: Discord.Message | Discord.PartialMessage): void {
+  private async onMessage(msg: Discord.Message | Discord.PartialMessage): Promise<void> {
     if (msg?.type !== 'DEFAULT' || (msg?.guild?.id?.length > 0 && !DiscordBot.guildIsEnabled(msg?.guild?.id))) {
       return;
     }
 
-    if (msg.content === 'ping') {
-      console.log('Pong!');
-      msg.reply('Pong!');
+    if (msg.content.startsWith('!verify')) {
+      await DiscordService.sendOsuOAuthVerificationLinkToDiscordUser(msg.author);
     }
+
+    // admin stuff
+    if (msg.content.startsWith('!setReactionMessage')) {
+      if (this.messageWasSentByDiscordAdmin(msg)) {
+        const parts = msg.content.split(' ');
+        if (parts.length < 2) {
+          return;
+        }
+        const reactionMessageId = parts[1];
+        // TODO: validate reactionMessageId is a valid message ID
+        // TODO: Store.set('config.discord.reactionMessageId', reactionMessageId)
+      }
+    }
+  }
+
+  private messageWasSentByDiscordAdmin(msg: Discord.Message | Discord.PartialMessage): boolean {
+    return Store.get('config.discord.adminUserIds').includes(msg.author.id);
   }
 
   private async onMessageReactionAdd(reaction: Discord.MessageReaction, user: Discord.User | Discord.PartialUser): Promise<void> {
