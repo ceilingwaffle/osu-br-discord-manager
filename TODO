@@ -1,0 +1,18 @@
+TODO:
+  Server:
+    ✔ Fix the LetsEncrypt permissions on the server @done(20-03-27 00:45)
+    ☐ Install Forever.js
+    ☐ Write a post-renew certbot script
+      https://certbot.eff.org/docs/using.html#pre-and-post-validation-hooks
+  General:
+    ☐ Use role.setPoisition() to move the bot as high as possible in the list of roles
+    This is so the bot has permission to remove other roles.
+    https://discord.js.org/#/docs/main/master/class/Role?scrollTo=setPosition
+    The issue is that the bot will crash with Discord permission-related errors if the Solos, Duos etc roles already exist before the bot joins.
+    Temporary workaround is to manually move the osuMPP role to the top of the roles list in the Discord server settings.
+    ☐ Kick users that joined >60 mins ago but have not selected any roles
+    ☐ Setup logging
+    ☐ Log output to a Discord channel
+  Roles Form:
+    ☐ The roles form should be loaded with the user's current roles checked
+    ☐ Validate that at least one role is checked
