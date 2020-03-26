@@ -71,7 +71,8 @@ export class DiscordService {
 
   private static async denyUserAccess(osuUser: OsuUser, discordUserId: string): Promise<void> {
     const minRank: number = await Store.get('config.minRank');
-    const message = `Sorry, your rank is ${osuUser.rank} but you must be at least rank ${minRank} to participate in the battle royale! ✋`;
+    // const message = `Sorry, your rank is ${osuUser.rank} but you must be at least rank ${minRank} to participate in the battle royale! ✋`;
+    const message = `Halt ✋ You are of a pleborian rank ${osuUser.rank} and are not permitted entry 🛑 Entry is only granted to those of at least ${minRank} in osu!standard rankage 👋`;
     await DiscordBot.getInstance().sendPrivateMessage(discordUserId, message);
     // TODO: kick the user
     await DiscordBot.getInstance().kickUser(discordUserId, `osu! rank greater than '${minRank}' (rank was '${osuUser.rank}').`);
