@@ -132,7 +132,7 @@ export class HttpServer {
     });
 
     http.createServer(app).listen(80, () => {
-      console.debug(`HTTPS server started at http://localhost:80`);
+      console.debug(`HTTP server started at http://localhost:80`);
     });
   }
 
