@@ -16,9 +16,8 @@ export class HttpServer {
     const osuApi = new OsuApi();
     const publicPath = path.join(__dirname, 'public');
     const htmlPath = path.join(__dirname, 'html');
-    const certPath = path.join(__dirname, 'cert');
-    const privateKey = fs.readFileSync(path.join(certPath, 'server.key'));
-    const certificate = fs.readFileSync(path.join(certPath, 'server.cert'));
+    const privateKey = fs.readFileSync(process.env.SSL_PRIVKEY_PATH);
+    const certificate = fs.readFileSync(process.env.SSL_CERT_PATH);
 
     app.use(express.static(publicPath, { extensions: ['html'], dotfiles: 'allow' }));
     app.use(express.urlencoded({ extended: true }));
