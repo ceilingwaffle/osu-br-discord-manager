@@ -4,96 +4,112 @@
     <meta charset="utf-8" />
     <link href="https://unpkg.com/material-components-web@v4.0.0/dist/material-components-web.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+    <style>
+      body {
+        background-color: #333333;
+        color: #dddddd;
+      }
+      .content {
+        max-width: 500px;
+        margin: auto;
+      }
+      .mdc-form-field>label {
+        color: white;
+      }
+      </style>
     <script src="https://unpkg.com/material-components-web@v4.0.0/dist/material-components-web.min.js"></script>
-    <title>Select your roles</title>
+    <title>Battle Royale - Hosted by Kano</title>
   </head>
   <body>
-    <h1 class="mdc-typography--headline5">Select Your Discord Roles</h1>
-    <form method="POST" action="/v1/oauth2/osu/success" id="form">
-      <div class="mdc-select">
-        <div>
-          <!---->
-          <div class="mdc-form-field ">
-            <div
-              class="mdc-checkbox mdc-checkbox--upgraded mdc-ripple-upgraded mdc-ripple-upgraded--unbounded"
-              style="--mdc-ripple-fg-size:24px; --mdc-ripple-fg-scale:1.66667; --mdc-ripple-left:8px; --mdc-ripple-top:8px;"
-            >
-              <input type="checkbox" class="mdc-checkbox__native-control" id="check-solos" name="solos" />
-              <div class="mdc-checkbox__background">
-                <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
-                  <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"></path>
-                </svg>
-                <div class="mdc-checkbox__mixedmark"></div>
+    <div class="content">
+      <img src="https://cdn.discordapp.com/icons/659761633874411530/1168ec1fabc04ef206c76ad493203b74.png?size=256" width="150" height="150" alt="Logo" id="logo" />
+      <h1 class="mdc-typography--headline5">Select Your Interests</h1>
+      <form method="POST" action="/v1/oauth2/osu/success" id="form">
+        <div class="mdc-select">
+          <div>
+            <!---->
+            <div class="mdc-form-field ">
+              <div
+                class="mdc-checkbox mdc-checkbox--upgraded mdc-ripple-upgraded mdc-ripple-upgraded--unbounded"
+                style="--mdc-ripple-fg-size:24px; --mdc-ripple-fg-scale:1.66667; --mdc-ripple-left:8px; --mdc-ripple-top:8px;"
+              >
+                <input type="checkbox" class="mdc-checkbox__native-control" id="check-solos" name="solos" checked />
+                <div class="mdc-checkbox__background">
+                  <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                    <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"></path>
+                  </svg>
+                  <div class="mdc-checkbox__mixedmark"></div>
+                </div>
+                <div class="mdc-checkbox__ripple"></div>
               </div>
-              <div class="mdc-checkbox__ripple"></div>
+              <label for="check-item1"><!---->Solos<!----></label>
             </div>
-            <label for="check-item1"><!---->Solos<!----></label>
+            <!---->
           </div>
-          <!---->
-        </div>
-        <div>
-          <!---->
-          <div class="mdc-form-field ">
-            <div
-              class="mdc-checkbox mdc-checkbox--upgraded mdc-ripple-upgraded mdc-ripple-upgraded--unbounded"
-              style="--mdc-ripple-fg-size:24px; --mdc-ripple-fg-scale:1.66667; --mdc-ripple-left:8px; --mdc-ripple-top:8px;"
-            >
-              <input type="checkbox" class="mdc-checkbox__native-control" id="check-item2" name="duos" />
-              <div class="mdc-checkbox__background">
-                <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
-                  <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"></path>
-                </svg>
-                <div class="mdc-checkbox__mixedmark"></div>
+          <div>
+            <!---->
+            <div class="mdc-form-field ">
+              <div
+                class="mdc-checkbox mdc-checkbox--upgraded mdc-ripple-upgraded mdc-ripple-upgraded--unbounded"
+                style="--mdc-ripple-fg-size:24px; --mdc-ripple-fg-scale:1.66667; --mdc-ripple-left:8px; --mdc-ripple-top:8px;"
+              >
+                <input type="checkbox" class="mdc-checkbox__native-control" id="check-item2" name="duos" />
+                <div class="mdc-checkbox__background">
+                  <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                    <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"></path>
+                  </svg>
+                  <div class="mdc-checkbox__mixedmark"></div>
+                </div>
+                <div class="mdc-checkbox__ripple"></div>
               </div>
-              <div class="mdc-checkbox__ripple"></div>
+              <label for="check-item2"><!---->Duos<!----></label>
             </div>
-            <label for="check-item2"><!---->Duos<!----></label>
+            <!---->
           </div>
-          <!---->
-        </div>
-        <div>
-          <!---->
-          <div class="mdc-form-field ">
-            <div
-              class="mdc-checkbox mdc-checkbox--upgraded mdc-ripple-upgraded mdc-ripple-upgraded--unbounded"
-              style="--mdc-ripple-fg-size:24px; --mdc-ripple-fg-scale:1.66667; --mdc-ripple-left:8px; --mdc-ripple-top:8px;"
-            >
-              <input type="checkbox" class="mdc-checkbox__native-control" id="check-item3" name="trios" />
-              <div class="mdc-checkbox__background">
-                <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
-                  <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"></path>
-                </svg>
-                <div class="mdc-checkbox__mixedmark"></div>
+          <div>
+            <!---->
+            <div class="mdc-form-field ">
+              <div
+                class="mdc-checkbox mdc-checkbox--upgraded mdc-ripple-upgraded mdc-ripple-upgraded--unbounded"
+                style="--mdc-ripple-fg-size:24px; --mdc-ripple-fg-scale:1.66667; --mdc-ripple-left:8px; --mdc-ripple-top:8px;"
+              >
+                <input type="checkbox" class="mdc-checkbox__native-control" id="check-item3" name="trios" />
+                <div class="mdc-checkbox__background">
+                  <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                    <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"></path>
+                  </svg>
+                  <div class="mdc-checkbox__mixedmark"></div>
+                </div>
+                <div class="mdc-checkbox__ripple"></div>
               </div>
-              <div class="mdc-checkbox__ripple"></div>
+              <label for="check-item3"><!---->Trios<!----></label>
             </div>
-            <label for="check-item3"><!---->Trios<!----></label>
+            <!---->
           </div>
-          <!---->
-        </div>
-        <div>
-          <!---->
-          <div class="mdc-form-field ">
-            <div
-              class="mdc-checkbox mdc-checkbox--upgraded mdc-ripple-upgraded mdc-ripple-upgraded--unbounded"
-              style="--mdc-ripple-fg-size:24px; --mdc-ripple-fg-scale:1.66667; --mdc-ripple-left:8px; --mdc-ripple-top:8px;"
-            >
-              <input type="checkbox" class="mdc-checkbox__native-control" id="check-item4" name="squads" />
-              <div class="mdc-checkbox__background">
-                <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
-                  <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"></path>
-                </svg>
-                <div class="mdc-checkbox__mixedmark"></div>
+          <div>
+            <!---->
+            <div class="mdc-form-field ">
+              <div
+                class="mdc-checkbox mdc-checkbox--upgraded mdc-ripple-upgraded mdc-ripple-upgraded--unbounded"
+                style="--mdc-ripple-fg-size:24px; --mdc-ripple-fg-scale:1.66667; --mdc-ripple-left:8px; --mdc-ripple-top:8px;"
+              >
+                <input type="checkbox" class="mdc-checkbox__native-control" id="check-item4" name="squads" />
+                <div class="mdc-checkbox__background">
+                  <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                    <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"></path>
+                  </svg>
+                  <div class="mdc-checkbox__mixedmark"></div>
+                </div>
+                <div class="mdc-checkbox__ripple"></div>
               </div>
-              <div class="mdc-checkbox__ripple"></div>
+              <label for="check-item4"><!---->Squads<!----></label>
             </div>
-            <label for="check-item4"><!---->Squads<!----></label>
+            <!---->
           </div>
-          <!---->
+          <button type="submit" class="mdc-button mdc-button--raised mdc-button--primary mdc-ripple-surface" data-mdc-auto-init="MDCRipple" />Continue</button>
         </div>
-        <button type="submit" class="mdc-button mdc-button--raised mdc-button--primary mdc-ripple-surface" data-mdc-auto-init="MDCRipple" />Continue</button>
-      </div>
-    </form>
+      </form>
+    </div>
     <script type="text/javascript">
       mdc.ripple.MDCRipple.attachTo(document.querySelector('.mdc-select'));
     </script>

@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request } from 'express';
 import session from 'express-session';
 import fs from 'fs';
 import http from 'http';
@@ -14,13 +14,13 @@ export class HttpServer {
   public start(): void {
     const app = express();
     const osuApi = new OsuApi();
-    // const publicPath = path.join(__dirname, 'public');
+    const publicPath = path.join(__dirname, 'public');
     const htmlPath = path.join(__dirname, 'html');
     const certPath = path.join(__dirname, 'cert');
     const privateKey = fs.readFileSync(path.join(certPath, 'server.key'));
     const certificate = fs.readFileSync(path.join(certPath, 'server.cert'));
 
-    // app.use(express.static(publicPath, { extensions: ['html'], dotfiles: 'allow' }));
+    app.use(express.static(publicPath, { extensions: ['html'], dotfiles: 'allow' }));
     app.use(express.urlencoded({ extended: true }));
 
     passport.use(
@@ -41,7 +41,10 @@ export class HttpServer {
               throw new Error('OsuUser does not contain the expected properties.');
             }
             const discordUserId = this.getDiscordUserIdFromSession(req);
-            await DiscordService.handleOsuOAuthSuccess(osuUser, discordUserId);
+            const accessGranted = await DiscordService.handleOsuOAuthSuccess(osuUser, discordUserId);
+            if (!accessGranted) {
+              req.session.denyAccess = true;
+            }
             verifyCallback(null, {});
           } catch (error) {
             console.error('Failed osu! user authentication process. Error:', error);
@@ -88,7 +91,11 @@ export class HttpServer {
 
     app.get('/v1/oauth2/osu/success', async (req, res) => {
       console.debug('GET /v1/oauth2/osu/success');
-      res.sendFile(htmlPath + '/roles.html', { euid: req.session.euid });
+      if (req.session.denyAccess) {
+        res.sendFile(htmlPath + '/denied.html', { euid: req.session.euid });
+      } else {
+        res.sendFile(htmlPath + '/roles.html', { euid: req.session.euid });
+      }
     });
 
     app.post('/v1/oauth2/osu/success', async (req, res) => {
@@ -110,7 +117,7 @@ export class HttpServer {
           throw new Error(`Discord User ID '${discordUserId}' is invalid.`);
         }
         await DiscordService.assignPlayerRolesToUser(discordUserId, roles);
-        return res.send('Your Discord roles have been applied! Check Discord for more info.');
+        res.sendFile(htmlPath + '/success.html', { euid: req.session.euid });
       } catch (error) {
         return res.send('Oops! Something went wrong. Unable to assign you your discord roles. Check with the Discord server admin.');
       }

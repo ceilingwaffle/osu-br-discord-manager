@@ -7,17 +7,23 @@ import { BattleRoyaleDiscordRole, BattleRoyaleRoleName, BR_ROLE_NAMES } from './
 import { DiscordBot } from './DiscordBot';
 
 export class DiscordService {
-  public static async handleOsuOAuthSuccess(osuUser: OsuUser, discordUserId: string): Promise<void> {
-    console.debug(`Checking rank '${osuUser.rank}'...`);
-    const minRank: number = await Store.get('config.minRank');
-    if (osuUser.rank > minRank) {
-      console.debug('Denying user server access due to rank.');
-      await DiscordService.denyUserAccess(osuUser, discordUserId);
-      return;
-    }
+  public static async handleOsuOAuthSuccess(osuUser: OsuUser, discordUserId: string): Promise<boolean> {
+    try {
+      console.debug(`Checking rank '${osuUser.rank}'...`);
+      const minRank: number = await Store.get('config.minRank');
+      if (osuUser.rank > minRank) {
+        console.debug('Denying user server access due to rank.');
+        await DiscordService.denyUserAccess(osuUser, discordUserId);
+        return false;
+      }
 
-    console.debug('Setting up new user on server...');
-    await DiscordService.setupNewUser(discordUserId, osuUser);
+      console.debug('Setting up new user on server...');
+      await DiscordService.setupNewUser(discordUserId, osuUser);
+      return true;
+    } catch (error) {
+      console.error('Error during handleOsuOAuthSuccess process:', error);
+      throw error;
+    }
   }
 
   public static async assignPlayerRolesToUser(discordUserId: string, possiblyInvalidSelectedRoles: readonly string[]): Promise<void> {
@@ -68,6 +74,7 @@ export class DiscordService {
     const message = `Sorry, your rank is ${osuUser.rank} but you must be at least rank ${minRank} to participate in the battle royale! ✋`;
     await DiscordBot.getInstance().sendPrivateMessage(discordUserId, message);
     // TODO: kick the user
+    await DiscordBot.getInstance().kickUser(discordUserId, `osu! rank greater than '${minRank}' (rank was '${osuUser.rank}').`);
   }
 
   private static async setupNewUser(discordUserId: string, osuUser: OsuUser): Promise<void> {

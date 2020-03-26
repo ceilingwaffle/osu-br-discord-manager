@@ -84,6 +84,21 @@ export class DiscordBot {
     }
   }
 
+  public async kickUser(discordUserId: string, reason?: string): Promise<void> {
+    console.debug(`Kicking user: '${discordUserId}'`);
+    const discordUser = DiscordBot.getObservedGuildMember(discordUserId);
+    if (!discordUser) {
+      return new Promise((resolve, reject) => reject('Discord user not found.'));
+    }
+
+    try {
+      await discordUser.kick(reason);
+    } catch (error) {
+      console.error(`Failed to kick Discord user '${discordUserId}'.`, error);
+      throw error;
+    }
+  }
+
   public async setNickname(discordUserId: string, nickname: string, reason?: string): Promise<void> {
     console.debug('Setting nickname of user...');
     const discordUser = DiscordBot.getObservedGuildMember(discordUserId);
