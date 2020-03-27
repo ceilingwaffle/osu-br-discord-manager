@@ -155,6 +155,10 @@ export class DiscordBot {
   }
 
   private async onGuildMemberAdd(guildMember: GuildMember): Promise<void> {
+    if (!DiscordBot.guildIsEnabled(guildMember?.guild?.id)) {
+      return;
+    }
+
     console.log(`Guild member added: ${guildMember.displayName}`);
     await DiscordService.sendOsuOAuthVerificationLinkToDiscordUser(guildMember);
     DiscordBot.addObservedGuildMember(guildMember.id, guildMember);
@@ -166,11 +170,8 @@ export class DiscordBot {
 
   private async onMessage(msg: Discord.Message | Discord.PartialMessage): Promise<void> {
     if (!msg?.guild || (msg?.guild?.id?.length > 0 && !DiscordBot.guildIsEnabled(msg?.guild?.id))) {
-      console.debug(`Message - {}`);
       return;
     }
-
-    console.debug(`Message - ${msg.author.username}:`, msg.content);
 
     // Returns the GuildMember form of a User object, if the user is present in the guild.
     const guildMember = msg.guild.member(msg.author);
