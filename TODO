@@ -16,6 +16,10 @@ TODO:
       - When a user joins the server
       - When the bot kicks a user
       - When the user verifies their osu! account (and how long it took after joining)
+  Commands:
+    ☐ CRUD enabled guilds
+    ☐ CRUD admin user IDS
+    ☐ CRUD osu min rank
   Roles Form:
     ☐ The roles form should be loaded with the user's current roles checked
     ☐ Validate that at least one role is checked
