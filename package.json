@@ -32,7 +32,8 @@
     "reset": "git clean -dfx && git reset --hard && npm i",
     "clean": "trash build test",
     "prepare-release": "run-s reset test cov:check doc:html version doc:publish",
-    "start": "tsc && node build/main/index.js"
+    "start": "ts-node src/index.ts",
+    "start2": "tsc && node build/main/index.js"
   },
   "scripts-info": {
     "info": "Display information about the package scripts",

@@ -91,5 +91,8 @@ export class DiscordService {
 
     // Assign the user the 'verified' role
     await DiscordBot.getInstance().assignRole(discordUserId, BattleRoyaleDiscordRole.VERIFIED, reason);
+
+    // Assign the user the 'player' role
+    await DiscordBot.getInstance().assignRole(discordUserId, BattleRoyaleDiscordRole.PLAYER, reason);
   }
 }

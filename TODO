@@ -5,6 +5,8 @@ TODO:
     ☐ Write a post-renew certbot script to modify the cert file/folder permissions (is this even needed?)
       https://certbot.eff.org/docs/using.html#pre-and-post-validation-hooks
   General:
+    ☐ Brand the bot with the BR logo / name
+    ☐ when people join arrival, ping them and ask them to check their messages (from the bot itself)
     ☐ Use role.setPoisition() to move the bot as high as possible in the list of roles
     This is so the bot has permission to remove other roles.
     https://discord.js.org/#/docs/main/master/class/Role?scrollTo=setPosition
