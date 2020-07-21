@@ -127,12 +127,15 @@ export class HttpServer {
       return res.send('Oops! Failed to authenticate your osu! account. Please try again.');
     });
 
-    https.createServer({ cert: certificate, key: privateKey }, app).listen(443, () => {
-      console.debug(`HTTPS server started at https://localhost:443`);
+    const httpsPort = process.env.NODE_ENV === 'debug' ? 8081 : 443;
+    const httpPort = process.env.NODE_ENV === 'debug' ? 8080 : 80;;
+
+    https.createServer({ cert: certificate, key: privateKey }, app).listen(httpsPort, () => {
+      console.debug(`HTTPS server started at https://localhost:${httpsPort} `);
     });
 
-    http.createServer(app).listen(80, () => {
-      console.debug(`HTTP server started at http://localhost:80`);
+    http.createServer(app).listen(httpPort, () => {
+      console.debug(`HTTP server started at http://localhost:${httpPort}`);
     });
   }
 
