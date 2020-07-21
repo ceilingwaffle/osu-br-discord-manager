@@ -23,10 +23,10 @@ export class BattleRoyaleDiscordRole {
     name: 'Player',
     permissions: ['READ_MESSAGE_HISTORY', 'SEND_MESSAGES', 'VIEW_CHANNEL', 'USE_EXTERNAL_EMOJIS', 'CONNECT', 'SPEAK', 'USE_VAD']
   });
-  public static readonly BR_SOLOS = new BattleRoyaleDiscordRole('BR_SOLOS', { name: 'Solos' });
-  public static readonly BR_DUOS = new BattleRoyaleDiscordRole('BR_DUOS', { name: 'Duos' });
-  public static readonly BR_TRIOS = new BattleRoyaleDiscordRole('BR_TRIOS', { name: 'Trios' });
-  public static readonly BR_SQUADS = new BattleRoyaleDiscordRole('BR_SQUADS', { name: 'Squads' });
+  public static readonly BR_SOLOS = new BattleRoyaleDiscordRole('BR_SOLOS', { name: 'Solos', permissions: [] });
+  public static readonly BR_DUOS = new BattleRoyaleDiscordRole('BR_DUOS', { name: 'Duos', permissions: [] });
+  public static readonly BR_TRIOS = new BattleRoyaleDiscordRole('BR_TRIOS', { name: 'Trios', permissions: [] });
+  public static readonly BR_SQUADS = new BattleRoyaleDiscordRole('BR_SQUADS', { name: 'Squads', permissions: [] });
 
   private constructor(private readonly key: string, public readonly value: DiscordRoleObject) {}
 
