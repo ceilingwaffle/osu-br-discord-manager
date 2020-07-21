@@ -179,9 +179,9 @@ export class DiscordBot {
       DiscordBot.addObservedGuildMember(msg.author.id, guildMember);
     }
 
-    if (msg.content.startsWith('!verify')) {
-      await DiscordService.sendOsuOAuthVerificationLinkToDiscordUser(msg.author);
-    }
+    // if (msg.content.startsWith('!verify')) {
+    //   await DiscordService.sendOsuOAuthVerificationLinkToDiscordUser(msg.author);
+    // }
 
     // admin stuff
     if (msg.content.startsWith('!setReactionMessage')) {
