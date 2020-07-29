@@ -12,13 +12,13 @@ export class DiscordService {
       console.debug(`Checking rank '${osuUser.rank}'...`);
       const minRank: number = await Store.get('config.minRank');
       if (osuUser.rank > minRank) {
-        console.debug('Denying user server access due to rank.');
-        await DiscordService.denyUserAccess(osuUser, discordUserId);
+        console.debug('Setting up new observer user (less than min rank)...');
+        await DiscordService.setupObserverUser(osuUser, discordUserId);
         return false;
       }
 
-      console.debug('Setting up new user on server...');
-      await DiscordService.setupNewUser(discordUserId, osuUser);
+      console.debug('Setting up new verified user on server...');
+      await DiscordService.setupVerifiedUser(discordUserId, osuUser);
       return true;
     } catch (error) {
       console.error('Error during handleOsuOAuthSuccess process:', error);
@@ -69,21 +69,30 @@ export class DiscordService {
     return role;
   }
 
-  private static async denyUserAccess(osuUser: OsuUser, discordUserId: string): Promise<void> {
+  private static async setupObserverUser(osuUser: OsuUser, discordUserId: string): Promise<void> {
     const minRank: number = await Store.get('config.minRank');
-    // const message = `Sorry, your rank is ${osuUser.rank} but you must be at least rank ${minRank} to participate in the battle royale! ✋`;
-    const message = `Halt ✋ You are of a pleborian rank ${osuUser.rank} and are not permitted entry 🛑 Entry is only granted to those of at least ${minRank} in osu!standard rankage 👋`;
+    const message = `Sorry, your rank is ${osuUser.rank} but you must be at least rank ${minRank} to participate in the battle royale. You have been given read-only access to the server as an observer 👀`;
+    // const message = `Halt ✋ You are of a pleborian rank ${osuUser.rank} and are not permitted entry 🛑 Entry is only granted to those of at least ${minRank} in osu!standard rankage 👋`;
     await DiscordBot.getInstance().sendPrivateMessage(discordUserId, message);
-    // TODO: kick the user
-    await DiscordBot.getInstance().kickUser(discordUserId, `osu! rank greater than '${minRank}' (rank was '${osuUser.rank}').`);
+    
+    // await DiscordBot.getInstance().kickUser(discordUserId, `osu! rank greater than '${minRank}' (rank was '${osuUser.rank}').`);
+
+    const reason = `Authenticated osu! account and rank greater than ${minRank}.`;
+
+    // Set the nickname of the user
+    const nickname = osuUser.username;
+    await DiscordBot.getInstance().setNickname(discordUserId, nickname, reason);
+
+    // Assign the user the 'observer' role
+    await DiscordBot.getInstance().assignRole(discordUserId, BattleRoyaleDiscordRole.OBSERVER, reason);
   }
 
-  private static async setupNewUser(discordUserId: string, osuUser: OsuUser): Promise<void> {
+  private static async setupVerifiedUser(discordUserId: string, osuUser: OsuUser): Promise<void> {
     // Send DM to user
     const message = `Thanks for authenticating your osu! account. Welcome to the server, and good luck! 😎`;
     await DiscordBot.getInstance().sendPrivateMessage(discordUserId, message);
 
-    const reason = 'Authenticated osu! account and verified rank within allowed range.';
+    const reason = 'Authenticated osu! account and verified rank $within allowed range.';
 
     // Set the nickname of the user
     const nickname = osuUser.username;

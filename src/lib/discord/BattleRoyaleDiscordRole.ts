@@ -2,12 +2,13 @@ import Discord, { ColorResolvable } from 'discord.js';
 
 export interface DiscordRoleObject {
   readonly color?: ColorResolvable;
-  readonly name: BattleRoyaleRoleName | VerifiedRoleName | PlayerRoleName;
+  readonly name: BattleRoyaleRoleName | VerifiedRoleName | PlayerRoleName | ObserverRoleName;
   readonly permissions?: Discord.PermissionResolvable;
 }
 
 export type VerifiedRoleName = 'Verified ✅';
 export type PlayerRoleName = 'Player';
+export type ObserverRoleName = 'Observer ✅';
 
 export const BR_ROLE_NAMES = ['Solos', 'Duos', 'Trios', 'Squads'] as const;
 export type BattleRoyaleRoleNameTuple = typeof BR_ROLE_NAMES;
@@ -22,6 +23,10 @@ export class BattleRoyaleDiscordRole {
   public static readonly PLAYER = new BattleRoyaleDiscordRole('PLAYER', {
     name: 'Player',
     permissions: ['READ_MESSAGE_HISTORY', 'SEND_MESSAGES', 'VIEW_CHANNEL', 'USE_EXTERNAL_EMOJIS', 'CONNECT', 'SPEAK', 'USE_VAD']
+  });
+  public static readonly OBSERVER = new BattleRoyaleDiscordRole('OBSERVER', {
+    name: 'Observer ✅',
+    permissions: ['READ_MESSAGE_HISTORY', 'VIEW_CHANNEL']
   });
   public static readonly BR_SOLOS = new BattleRoyaleDiscordRole('BR_SOLOS', { name: 'Solos', permissions: [] });
   public static readonly BR_DUOS = new BattleRoyaleDiscordRole('BR_DUOS', { name: 'Duos', permissions: [] });
