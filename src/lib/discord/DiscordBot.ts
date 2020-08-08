@@ -179,22 +179,34 @@ export class DiscordBot {
       DiscordBot.addObservedGuildMember(msg.author.id, guildMember);
     }
 
+    if (msg.content.startsWith('!avgrank')) {
+      if (!DiscordBot.getInstance().messageWasSentByDiscordAdmin(msg)) {
+        await msg.channel.send(`Sorry, that command is for admins only :(`);
+        return;
+      }
+
+      // tslint:disable-next-line: no-let
+      let results: string | Error = `There was an error calculating the average ranks :(`;
+      results = await DiscordService.getResultsForAverageRankCommand(msg.content);
+      await msg.channel.send(`Team Average Ranks:\n${results}`);
+    }
+
     // if (msg.content.startsWith('!verify')) {
     //   await DiscordService.sendOsuOAuthVerificationLinkToDiscordUser(msg.author);
     // }
 
     // admin stuff
-    if (msg.content.startsWith('!setReactionMessage')) {
-      if (this.messageWasSentByDiscordAdmin(msg)) {
-        const parts = msg.content.split(' ');
-        if (parts.length < 2) {
-          return;
-        }
-        const reactionMessageId = parts[1];
-        // TODO: validate reactionMessageId is a valid message ID
-        // TODO: Store.set('config.discord.reactionMessageId', reactionMessageId)
-      }
-    }
+    // if (msg.content.startsWith('!setReactionMessage')) {
+    //   if (this.messageWasSentByDiscordAdmin(msg)) {
+    //     const parts = msg.content.split(' ');
+    //     if (parts.length < 2) {
+    //       return;
+    //     }
+    //     const reactionMessageId = parts[1];
+    //     // TODO: validate reactionMessageId is a valid message ID
+    //     // TODO: Store.set('config.discord.reactionMessageId', reactionMessageId)
+    //   }
+    // }
   }
 
   private messageWasSentByDiscordAdmin(msg: Discord.Message | Discord.PartialMessage): boolean {

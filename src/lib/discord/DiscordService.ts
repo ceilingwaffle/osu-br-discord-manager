@@ -1,7 +1,7 @@
 import Discord from 'discord.js';
 import { arrayDifference, arrayIntersection } from '../helpers';
 import { UrlBuilder } from '../http/UrlBuilder';
-import { OsuUser } from '../osu/OsuApi';
+import { OsuApi, OsuUser } from '../osu/OsuApi';
 import { Store } from '../store/Store';
 import { BattleRoyaleDiscordRole, BattleRoyaleRoleName, BR_ROLE_NAMES } from './BattleRoyaleDiscordRole';
 import { DiscordBot } from './DiscordBot';
@@ -49,6 +49,53 @@ export class DiscordService {
     const oauthUrl = UrlBuilder.buildInitialOauthUrlForDiscordUser(discordUser.id);
     const message = `Welcome to the battle royale! Please visit ${oauthUrl} to verify your osu! account.`;
     await discordUser.send(message);
+  }
+
+  public static async getResultsForAverageRankCommand(message: string): Promise<string> {
+    const osuApi = new OsuApi();
+
+    // extract the !command from the message
+    const split = message.split(' ')
+    split.shift();
+    const messageWithoutCommand = split.join(' ');
+
+    // group usernames into teams
+    const teams = messageWithoutCommand.split('\n');
+
+    // tslint:disable-next-line: readonly-keyword readonly-array
+    const teamsBuilt: Array<{avgRank: number, osuUsers: OsuUser[]}> = [];
+
+    for (const team of teams) {
+      const teamUsernames = team.split(',').map(u => u.trim());
+      const usersBuilt = new Array<OsuUser>();
+      for (const username of teamUsernames) {
+        const osuUser = await osuApi.getOsuUserForUsername(username);
+        usersBuilt.push(osuUser);
+      }
+
+      teamsBuilt.push({
+        avgRank: Math.round(usersBuilt.map(u => u.rank).reduce((a,b) => a + b) / usersBuilt.length),
+        osuUsers: usersBuilt,
+      });
+    }
+
+    // sort by team average ranks
+    teamsBuilt.sort((a,b) => a.avgRank - b.avgRank)
+
+    // build the string output
+    // tslint:disable-next-line: no-let
+    const stringOutput = new Array();
+
+    // tslint:disable-next-line: no-let
+    for (let i=0; i < teamsBuilt.length; i++) {
+      const team = teamsBuilt[i];
+      const position = i+1;
+      const avgRank = team.avgRank;
+      const userFormattedStrings = team.osuUsers.map(u => u.error.length ? `\`${u.error}\`` : `${u.username} (#${u.rank})`);
+      stringOutput.push(`${position}. #${avgRank} - ${userFormattedStrings.join(', ')}`);
+    }
+
+    return stringOutput.join('\n');
   }
 
   private static buildDiscordRoleForRoleName(roleName: BattleRoyaleRoleName): BattleRoyaleDiscordRole {
@@ -104,4 +151,5 @@ export class DiscordService {
     // Assign the user the 'player' role
     await DiscordBot.getInstance().assignRole(discordUserId, BattleRoyaleDiscordRole.PLAYER, reason);
   }
+
 }
