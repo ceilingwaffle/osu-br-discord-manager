@@ -56,7 +56,7 @@
     "@types/express-session": "^1.17.0",
     "@types/node": "^13.13.15",
     "@types/passport-oauth2": "^1.4.9",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "data-store": "github:jonschlinkert/data-store#master",
     "discord.js": "^12.2.0",
     "dotenv": "^8.2.0",
