@@ -60,7 +60,7 @@
     "data-store": "github:jonschlinkert/data-store#master",
     "discord.js": "^12.2.0",
     "dotenv": "^8.2.0",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "express-session": "^1.17.1",
     "int-encoder": "^1.1.1",
     "node-osu": "^2.2.0",
